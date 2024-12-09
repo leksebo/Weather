@@ -1,5 +1,4 @@
-// identify the elements that need to be manipulated in HTML
-
+// Identify the elements that need to be manipulated in HTML
 let valueSearch = document.getElementById('valueSearch');
 let city = document.getElementById('city');
 let temperature = document.getElementById('temperature');
@@ -9,58 +8,79 @@ let humidity = document.getElementById('hummidity');
 let pressure = document.getElementById('pressure');
 let form = document.querySelector('form');
 let main = document.querySelector('main');
-form.addEventListener('submit' ,(event) => {
+
+// Add event listener to the form to handle submit events
+form.addEventListener('submit', (event) => {
     event.preventDefault();
-    // checking to see if user has entered required data
-    if(valueSearch.value != ''){
-        // then proceed with further processing by calling api 'searchWeather'
+    // Check if the user has entered a city name
+    if (valueSearch.value !== '') {
+        // Call the searchWeather function to fetch weather data
         searchWeather();
     }
-})
+});
 
-// id is the app id value to use the api
-let id = '8585c8e4e8436ff831f37834e7bbc43a';
-// the url contains the weather api link
-let url = 'https://api.openweathermap.org/data/2.5/weather?units=metric&appid='+id;
+// API key for OpenWeatherMap
+const apiKey = '8585c8e4e8436ff831f37834e7bbc43a';
+// Base URL for the OpenWeatherMap API
+const baseUrl = 'https://api.openweathermap.org/data/2.5/weather?units=metric&appid=' + apiKey;
+
+// Function to fetch weather data from the API
 const searchWeather = () => {
-    // to be able to call the api i used function fetch with the path of the url variable
-    fetch(url + '&q=' + valueSearch.value)
-    // once the response from the request is recieved it is converted to JSON
-    .then(responsive => responsive.json())
-    // data is the data returned
-    .then(data => {
-        console.log(data);
-        // obtain data from dev tools, if value of code is 200 that means it has been found
-        if(data.cod == 200){
-            // from city find the figcaption, change its name to the text of the value returned by the api.
-            city.querySelector('figcaption').innerText = data.name;
-            // i copied the flags  path from html file and called it back here
-            city.querySelector('img').src='https://flagsapi.com/'+data.sys.country+'/shiny/32.png';
-           // i removed the default value, then used dev tools to get the value of the temperature
-            temperature.querySelector('img').src='http://openweathermap.org/img/wn/'+data.weather[0].icon+'@4x.png';
-            temperature.querySelector('figcaption span').innerText = data.main.temp;
-            description.innerText = data.weather[0].description;
-            clouds.innerText = data.clouds.all;
-            humidity.innerText = data.main.humidity;
-            pressure.innerText = data.main.pressure;
+    // Construct the full URL with the city name
+    const fullUrl = baseUrl + '&q=' + valueSearch.value;
 
-            // if the code is different from 200 it means an error
-        }else{
-            // false
-            main.classList.add('error');
-            setTimeout(() => {
-                main.classList.remove('error');
-            }, 1000);
-        }
+    // Fetch data from the API
+    fetch(fullUrl)
+        .then(response => {
+            if (!response.ok) {
+                console.error('Network response was not ok:', response);
+                throw new Error('Network response was not ok ' + response.statusText + ' - Status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data);
+            // Check if the API request was successful
+            if (data.cod === 200) {
+                // Update the city name
+                city.querySelector('figcaption').innerText = data.name;
+                // Update the flag image
+                city.querySelector('img').src = 'https://flagsapi.com/' + data.sys.country + '/shiny/32.png';
+                // Update the weather icon
+                temperature.querySelector('img').src = 'http://openweathermap.org/img/wn/' + data.weather[0].icon + '@4x.png';
+                // Update the temperature
+                temperature.querySelector('figcaption span').innerText = data.main.temp;
+                // Update the weather description
+                description.innerText = data.weather[0].description;
+                // Update the cloud cover
+                clouds.innerText = data.clouds.all;
+                // Update the humidity
+                humidity.innerText = data.main.humidity;
+                // Update the pressure
+                pressure.innerText = data.main.pressure;
+            } else {
+                // Add an error class to the main element
+                main.classList.add('error');
+                // Remove the error class after 1 second
+                setTimeout(() => {
+                    main.classList.remove('error');
+                }, 1000);
+            }
 
-        // After user has searched for information, whether success or failure i will clear content in input so users
-        // can search for another city
-        valueSearch.value = '';
-})
-}
+            // Clear the input field after the search
+            valueSearch.value = '';
+        })
+        .catch(error => {
+            console.error('Error fetching weather data:', error);
+            console.error('Full error object:', error);
+        });
+};
 
-const initApp = () =>{
-    valueSearch.value = 'Washington';
+// Initialize the app with a default city
+const initApp = () => {
+    valueSearch.value = 'London';
     searchWeather();
-}
+};
+
+// Call the initApp function to start the app
 initApp();
